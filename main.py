@@ -1,4 +1,4 @@
-from print_dict import print_dict as prettyPrintMyDict
+from print_dict import print_dict as prettyPrintMyListOfDicts
 from tweeterpy import TweeterPy
 from tweeterpy import config
 import argparse
@@ -19,18 +19,18 @@ def setup(username, password):
         exit(1)
     else:
         if DEBUG:
-            prettyPrintMyDict(twitter.me)
+            prettyPrintMyListOfDicts(twitter.me)
         return twitter
 
 
 def getSeedDB(seedUsername, twitter):
-    return cleanSeedDictToDB(
-        preProcessDirtySeedDict(buildDirtySeedDict(seedUsername, twitter))
+    return cleanSeedListOfDictsToDB(
+        preProcessDirtySeedListOfDicts(buildDirtySeedListOfDicts(seedUsername, twitter))
     )
 
 
-def buildDirtySeedDict(seedUsername, twitter):
-    dirtySeedDict = twitter.get_friends(
+def buildDirtySeedListOfDicts(seedUsername, twitter):
+    dirtySeedListOfDicts = twitter.get_friends(
         user_id=twitter.get_user_id(seedUsername),
         follower=False,
         following=True,
@@ -40,20 +40,22 @@ def buildDirtySeedDict(seedUsername, twitter):
         pagination=True,
     )
     if DEBUG:
-        prettyPrintMyDict(dirtySeedDict)
-    return dirtySeedDict
+        prettyPrintMyListOfDicts(dirtySeedListOfDicts)
+    return dirtySeedListOfDicts
 
 
-def preProcessDirtySeedDict(dirtySeedDict):
-    cleanSeedDict = filterDirtySeedDict(dirtySeedDict)
+def preProcessDirtySeedListOfDicts(dirtySeedListOfDicts):
+    cleanSeedListOfDicts = filterDirtySeedListOfDicts(dirtySeedListOfDicts)
     if DEBUG:
-        prettyPrintMyDict(cleanSeedDict)
+        prettyPrintMyListOfDicts(cleanSeedListOfDicts)
 
 
-def filterDirtySeedDict(dirtySeedDict):
-    cleanSeedDict = list()
-    if "data" in dirtySeedDict and isinstance(dirtySeedDict["data"], list):
-        for record in dirtySeedDict["data"]:
+def filterDirtySeedListOfDicts(dirtySeedListOfDicts):
+    cleanSeedListOfDicts = list()
+    if "data" in dirtySeedListOfDicts and isinstance(
+        dirtySeedListOfDicts["data"], list
+    ):
+        for record in dirtySeedListOfDicts["data"]:
             try:
                 user_data = (
                     record.get("content", {})
@@ -69,15 +71,15 @@ def filterDirtySeedDict(dirtySeedDict):
                 }
                 if DEBUG:
                     print("new_entry built")
-                    prettyPrintMyDict(new_entry)
+                    prettyPrintMyListOfDicts(new_entry)
                 if not new_entry.get("following") == 0:
-                    cleanSeedDict.append(new_entry)
+                    cleanSeedListOfDicts.append(new_entry)
             except AttributeError as e:
                 print(f"Error processing record: {e}")
-    return cleanSeedDict
+    return cleanSeedListOfDicts
 
 
-def cleanSeedDictToDB(cleanSeedDict):
+def cleanSeedListOfDictsToDB(cleanSeedListOfDicts):
     conn = sqlite3.connect("db/seed.db")
     return conn
 
