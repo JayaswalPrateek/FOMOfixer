@@ -1,4 +1,6 @@
+from collections import Counter
 from print_dict import print_dict as prettyPrintMyListOfDicts
+import importlib
 import json
 import os
 
@@ -12,14 +14,39 @@ def deserialize(fileName):
         if DEBUG:
             print(f"File '{filePath}' does not exist.")
         return None
-    with open(filePath, "r") as json_file:
-        data = json.load(json_file)
-        if DEBUG:
-            print(f"Data successfully read from '{filePath}'.")
-            prettyPrintMyListOfDicts(data)
-        return data
+    try:
+        with open(filePath, "r") as json_file:
+            data = json.load(json_file)
+            if DEBUG:
+                print(f"Data successfully read from '{filePath}'.")
+            return data
+    except Exception as e:
+        print(f"Error occurred while deserializing '{filePath}': {e}")
+        return None
+
+
+def buildFreqTable(listOfDicts):
+    freqTable = Counter()
+    for record in listOfDicts:
+        freqTable.update(record["following"])
+    freqDict = dict(freqTable)
+    suggestDict = {}
+    # discardDict = {}
+    for key, value in freqDict.items():
+        if value >= 2:
+            suggestDict[key] = value
+        # else:
+        #     discardDict[key] = value
+    suggestDict = dict(
+        sorted(suggestDict.items(), key=lambda item: item[1], reverse=True)
+    )
+    prettyPrintMyListOfDicts(suggestDict)
+    # prettyPrintMyListOfDicts(discardDict)
+    serialize = importlib.import_module("1-Scrape").serialize
+    serialize("suggest", suggestDict)
+    # serialize("discard", discardDict)
 
 
 if __name__ == "__main__":
-    deserialize("seed")
+    buildFreqTable(deserialize("seed"))
     print("SUCCESS")
