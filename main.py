@@ -23,18 +23,31 @@ def setup(username, password):
 
 
 def getSeedDB(seedUsername, twitter):
-    return seedDictToDB(preProcessSeedDict(buildSeedDict(seedUsername, twitter)))
+    return cleanSeedDictToDB(
+        preProcessDirtySeedDict(buildDirtySeedDict(seedUsername, twitter))
+    )
 
 
-def buildSeedDict(seedUsername, twitter):
+def buildDirtySeedDict(seedUsername, twitter):
+    dirtySeedDict = twitter.get_friends(
+        user_id=twitter.get_user_id(seedUsername),
+        follower=False,
+        following=True,
+        mutual_follower=False,
+        end_cursor=None,
+        total=None,
+        pagination=True,
+    )
+    if DEBUG:
+        prettyPrintMyDict(dirtySeedDict)
+    return dirtySeedDict
+
+
+def preProcessDirtySeedDict(dirtySeedDict):
     pass
 
 
-def preProcessSeedDict(dirtySeedDict):
-    pass
-
-
-def seedDictToDB(cleanSeedDict):
+def cleanSeedDictToDB(cleanSeedDict):
     conn = sqlite3.connect("db/seed.db")
     return conn
 
