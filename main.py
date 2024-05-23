@@ -2,7 +2,6 @@ from print_dict import print_dict as prettyPrintMyListOfDicts
 from tweeterpy import TweeterPy
 from tweeterpy import config
 import argparse
-import sqlite3
 
 DEBUG = False
 SKIP_LOGIN = False
@@ -46,6 +45,34 @@ def buildDirtySeedListOfDicts(seedUsername, twitter):
 
 def preProcessDirtySeedListOfDicts(dirtySeedListOfDicts):
     cleanSeedListOfDicts = filterDirtySeedListOfDicts(dirtySeedListOfDicts)
+    cleanSeedListOfDicts = sorted(
+        cleanSeedListOfDicts, key=lambda x: x["followers"], reverse=True
+    )
+    if not DEBUG:
+        prettyPrintMyListOfDicts(cleanSeedListOfDicts)
+    alreadyFollowedBySeedUser = set()
+    for record in cleanSeedListOfDicts:
+        alreadyFollowedBySeedUser.add(record.get("username"))
+    if DEBUG:
+        print(alreadyFollowedBySeedUser)
+    for seedRecord in cleanSeedListOfDicts:
+        seedRecordUsername = seedRecord.get("username")
+        seedRecord["following"] = filterDirtySeedListOfDicts(
+            twitter.get_friends(
+                user_id=twitter.get_user_id(seedRecordUsername),
+                follower=False,
+                following=True,
+                mutual_follower=False,
+                end_cursor=None,
+                total=None,
+                pagination=True,
+            )
+        )
+        usernameSet = set()
+        for record in seedRecord["following"]:
+            if record.get("username") not in alreadyFollowedBySeedUser:
+                usernameSet.add(record.get("username"))
+        seedRecord["following"] = usernameSet
     if DEBUG:
         prettyPrintMyListOfDicts(cleanSeedListOfDicts)
 
