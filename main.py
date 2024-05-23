@@ -5,11 +5,12 @@ import argparse
 import sqlite3
 
 DEBUG = True
+SKIP_LOGIN = False
 
 
 def setup(username, password):
-    if DEBUG:
-        return
+    if SKIP_LOGIN:
+        return TweeterPy()
     twitter = TweeterPy()
     print("PSA: Avoid using your primary account")
     twitter.login(username, password)
@@ -18,17 +19,18 @@ def setup(username, password):
         exit(1)
     else:
         prettyPrintMyDict(twitter.me)
+        return twitter
 
 
-def getSeedDB(seedUsername):
-    return seedDictToDB(preProcessSeedDict(buildSeedDict(seedUsername)))
+def getSeedDB(seedUsername, twitter):
+    return seedDictToDB(preProcessSeedDict(buildSeedDict(seedUsername, twitter)))
 
 
-def buildSeedDict(seedUsername):
+def buildSeedDict(seedUsername, twitter):
     pass
 
 
-def preProcessSeedDict(uglySeedDict):
+def preProcessSeedDict(dirtySeedDict):
     pass
 
 
@@ -41,12 +43,16 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Process username and password inputs.(Avoid using your primary account)"
     )
-    parser.add_argument("--username", type=str, required=True, help="The username")
-    parser.add_argument("--password", type=str, required=True, help="The password")
+    parser.add_argument(
+        "--username", type=str, required=not SKIP_LOGIN, help="The username"
+    )
+    parser.add_argument(
+        "--password", type=str, required=not SKIP_LOGIN, help="The password"
+    )
     args = parser.parse_args()
-    setup(args.username, args.password)
+    twitter = setup(args.username, args.password)
 
-    conn = getSeedDB(input("Enter Seed Username: "))
+    conn = getSeedDB(input("Enter Seed Username: "), twitter)
 
     conn.close()
     print("SUCCESS")
