@@ -1,4 +1,8 @@
-DEBUG = False
+from print_dict import print_dict as prettyPrintMyListOfDicts
+import json
+import os
+
+DEBUG = True
 CACHE_DIR_NAME = "cache"
 
 
@@ -12,4 +16,10 @@ def deserialize(fileName):
         data = json.load(json_file)
         if DEBUG:
             print(f"Data successfully read from '{filePath}'.")
+            prettyPrintMyListOfDicts(data)
         return data
+
+
+if __name__ == "__main__":
+    deserialize("seed")
+    print("SUCCESS")
