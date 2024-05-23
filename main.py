@@ -4,7 +4,7 @@ from tweeterpy import config
 import argparse
 import sqlite3
 
-DEBUG = True
+DEBUG = False
 SKIP_LOGIN = False
 
 
@@ -18,7 +18,8 @@ def setup(username, password):
         print("Login Failed!")
         exit(1)
     else:
-        prettyPrintMyDict(twitter.me)
+        if DEBUG:
+            prettyPrintMyDict(twitter.me)
         return twitter
 
 
@@ -44,7 +45,36 @@ def buildDirtySeedDict(seedUsername, twitter):
 
 
 def preProcessDirtySeedDict(dirtySeedDict):
-    pass
+    cleanSeedDict = filterDirtySeedDict(dirtySeedDict)
+    if DEBUG:
+        prettyPrintMyDict(cleanSeedDict)
+
+
+def filterDirtySeedDict(dirtySeedDict):
+    cleanSeedDict = list()
+    if "data" in dirtySeedDict and isinstance(dirtySeedDict["data"], list):
+        for record in dirtySeedDict["data"]:
+            try:
+                user_data = (
+                    record.get("content", {})
+                    .get("itemContent", {})
+                    .get("user_results", {})
+                    .get("result", {})
+                    .get("legacy", {})
+                )
+                new_entry = {
+                    "username": user_data.get("screen_name"),
+                    "following": user_data.get("friends_count"),
+                    "followers": user_data.get("followers_count"),
+                }
+                if DEBUG:
+                    print("new_entry built")
+                    prettyPrintMyDict(new_entry)
+                if not new_entry.get("following") == 0:
+                    cleanSeedDict.append(new_entry)
+            except AttributeError as e:
+                print(f"Error processing record: {e}")
+    return cleanSeedDict
 
 
 def cleanSeedDictToDB(cleanSeedDict):
