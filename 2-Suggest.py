@@ -31,12 +31,14 @@ def buildFreqTable(listOfDicts):
         freqTable.update(record["following"])
     freqDict = dict(freqTable)
     suggestDict = {}
-    # discardDict = {}
+    discardDict = {}
     for key, value in freqDict.items():
-        if value >= 2:
+        if key == None:
+            continue
+        if value >= 5:
             suggestDict[key] = value
-        # else:
-        #     discardDict[key] = value
+        else:
+            discardDict[key] = value
     suggestDict = dict(
         sorted(suggestDict.items(), key=lambda item: item[1], reverse=True)
     )
@@ -44,7 +46,7 @@ def buildFreqTable(listOfDicts):
     # prettyPrintMyListOfDicts(discardDict)
     serialize = importlib.import_module("1-Scrape").serialize
     serialize("suggest", suggestDict)
-    # serialize("discard", discardDict)
+    serialize("discard", discardDict)
 
 
 if __name__ == "__main__":

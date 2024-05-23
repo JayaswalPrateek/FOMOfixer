@@ -14,4 +14,5 @@ def plotFreqDistr(listOfDicts):
 
 if __name__ == "__main__":
     plotFreqDistr(importlib.import_module("2-Suggest").deserialize("suggest"))
+    plotFreqDistr(importlib.import_module("2-Suggest").deserialize("discard"))
     print("SUCCESS")
