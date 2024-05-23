@@ -1,4 +1,3 @@
 blinker<1.8.0
 print-dict
-sqlite3
 tweeterpy
