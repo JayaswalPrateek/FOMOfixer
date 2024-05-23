@@ -2,9 +2,12 @@ from print_dict import print_dict as prettyPrintMyListOfDicts
 from tweeterpy import TweeterPy
 from tweeterpy import config
 import argparse
+import json
+import os
 
 DEBUG = False
 SKIP_LOGIN = False
+CACHE_DIR_NAME = "cache"
 
 
 def setup(username, password):
@@ -22,9 +25,36 @@ def setup(username, password):
         return twitter
 
 
-def getSeedDB(seedUsername, twitter):
-    return cleanSeedListOfDictsToDB(
-        preProcessDirtySeedListOfDicts(buildDirtySeedListOfDicts(seedUsername, twitter))
+def serialize(fileName, listOfDicts):
+    if not os.path.exists(CACHE_DIR_NAME):
+        os.makedirs(CACHE_DIR_NAME)
+        if DEBUG:
+            print(f"Directory '{CACHE_DIR_NAME}' created successfully.")
+    elif DEBUG:
+        print(f"Directory '{CACHE_DIR_NAME}' already exists.")
+    json_string = json.dumps(listOfDicts, indent=4)
+    with open(f"{CACHE_DIR_NAME}/{fileName}.json", "w") as json_file:
+        json_file.write(json_string)
+        if DEBUG:
+            print(f"Data successfully written to '{CACHE_DIR_NAME}/{fileName}.json'.")
+
+
+def deserialize(fileName):
+    filePath = f"{CACHE_DIR_NAME}/{fileName}.json"
+    if not os.path.exists(filePath):
+        if DEBUG:
+            print(f"File '{filePath}' does not exist.")
+        return None
+    with open(filePath, "r") as json_file:
+        data = json.load(json_file)
+        if DEBUG:
+            print(f"Data successfully read from '{filePath}'.")
+        return data
+
+
+def buildSeedJson(seedUsername, twitter):
+    return preProcessDirtySeedListOfDicts(
+        buildDirtySeedListOfDicts(seedUsername, twitter)
     )
 
 
@@ -48,11 +78,11 @@ def preProcessDirtySeedListOfDicts(dirtySeedListOfDicts):
     cleanSeedListOfDicts = sorted(
         cleanSeedListOfDicts, key=lambda x: x["followers"], reverse=True
     )
-    if not DEBUG:
+    if DEBUG:
         prettyPrintMyListOfDicts(cleanSeedListOfDicts)
-    alreadyFollowedBySeedUser = set()
+    alreadyFollowedBySeedUser = list()
     for record in cleanSeedListOfDicts:
-        alreadyFollowedBySeedUser.add(record.get("username"))
+        alreadyFollowedBySeedUser.append(record.get("username"))
     if DEBUG:
         print(alreadyFollowedBySeedUser)
     for seedRecord in cleanSeedListOfDicts:
@@ -68,13 +98,14 @@ def preProcessDirtySeedListOfDicts(dirtySeedListOfDicts):
                 pagination=True,
             )
         )
-        usernameSet = set()
+        usernameSet = list()
         for record in seedRecord["following"]:
             if record.get("username") not in alreadyFollowedBySeedUser:
-                usernameSet.add(record.get("username"))
+                usernameSet.append(record.get("username"))
         seedRecord["following"] = usernameSet
     if DEBUG:
         prettyPrintMyListOfDicts(cleanSeedListOfDicts)
+    serialize("seed", cleanSeedListOfDicts)
 
 
 def filterDirtySeedListOfDicts(dirtySeedListOfDicts):
@@ -106,11 +137,6 @@ def filterDirtySeedListOfDicts(dirtySeedListOfDicts):
     return cleanSeedListOfDicts
 
 
-def cleanSeedListOfDictsToDB(cleanSeedListOfDicts):
-    conn = sqlite3.connect("db/seed.db")
-    return conn
-
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Process username and password inputs.(Avoid using your primary account)"
@@ -124,7 +150,6 @@ if __name__ == "__main__":
     args = parser.parse_args()
     twitter = setup(args.username, args.password)
 
-    conn = getSeedDB(input("Enter Seed Username: "), twitter)
+    buildSeedJson(input("Enter Seed Username: "), twitter)
 
-    conn.close()
     print("SUCCESS")
