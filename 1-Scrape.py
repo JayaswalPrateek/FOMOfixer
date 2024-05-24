@@ -60,7 +60,7 @@ def buildDirtySeedListOfDicts(seedUsername, twitter):
     return dirtySeedListOfDicts, twitter
 
 
-def preProcessDirtySeedListOfDicts(dirtySeedListOfDicts, twitter):
+def preProcessDirtySeedListOfDicts(dirtySeedListOfDicts, twitter=None):
     cleanSeedListOfDicts = filterDirtySeedListOfDicts(dirtySeedListOfDicts)
     cleanSeedListOfDicts = sorted(
         cleanSeedListOfDicts, key=lambda x: x["followers"], reverse=True
