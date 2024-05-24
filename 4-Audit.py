@@ -1,8 +1,27 @@
+import time
 import importlib
-import os
+import subprocess
 
+PARTITION_SIZE = 50
 
 if __name__ == "__main__":
-    for username in list(importlib.import_module("2-Suggest").deserialize("suggest").keys()):
-        os.system(f"xdg-open {"https://x.com/" + username}")
+    src = list(importlib.import_module("2-Suggest").deserialize("suggest").keys())
+    PARTITIONS = int(len(src) / PARTITION_SIZE) + (len(src) % PARTITION_SIZE > 0)
+    print(f"PARTITION_SIZE = {PARTITION_SIZE}")
+    print(f"PARTITIONS = {PARTITIONS}")
+
+    partitionNumber = int(input("Enter Partition Number: "))
+    if partitionNumber <= 0 or partitionNumber > PARTITIONS:
+        print(f"Invalid input: Valid values in range [1,{PARTITIONS}]")
+        exit(1)
+
+    start = (partitionNumber - 1) * PARTITION_SIZE
+    end = start + PARTITION_SIZE
+    if end > len(src):
+        end = len(src)
+
+    for username in src[start:end]:
+        subprocess.run(["xdg-open", f"https://x.com/{username}"], check=True)
+        time.sleep(0.5)
+
     print("SUCCESS")
