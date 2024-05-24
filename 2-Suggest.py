@@ -4,7 +4,7 @@ import importlib
 import json
 import os
 
-DEBUG = True
+DEBUG = False
 CACHE_DIR_NAME = "cache"
 
 
@@ -39,11 +39,10 @@ def buildFreqTable(listOfDicts):
             suggestDict[key] = value
         else:
             discardDict[key] = value
-    suggestDict = dict(
-        sorted(suggestDict.items(), key=lambda item: item[1], reverse=True)
-    )
-    prettyPrintMyListOfDicts(suggestDict)
-    # prettyPrintMyListOfDicts(discardDict)
+    suggestDict = dict(sorted(suggestDict.items(), key=lambda item: item[1], reverse=True))
+    if DEBUG:
+        prettyPrintMyListOfDicts(suggestDict)
+        # prettyPrintMyListOfDicts(discardDict)
     serialize = importlib.import_module("1-Scrape").serialize
     serialize("suggest", suggestDict)
     serialize("discard", discardDict)

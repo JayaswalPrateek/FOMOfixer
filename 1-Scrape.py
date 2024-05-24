@@ -61,9 +61,7 @@ def buildDirtySeedListOfDicts(seedUsername):
 
 def preProcessDirtySeedListOfDicts(dirtySeedListOfDicts):
     cleanSeedListOfDicts = filterDirtySeedListOfDicts(dirtySeedListOfDicts)
-    cleanSeedListOfDicts = sorted(
-        cleanSeedListOfDicts, key=lambda x: x["followers"], reverse=True
-    )
+    cleanSeedListOfDicts = sorted(cleanSeedListOfDicts, key=lambda x: x["followers"], reverse=True)
     if DEBUG:
         prettyPrintMyListOfDicts(cleanSeedListOfDicts)
     alreadyFollowedBySeedUser = list()
@@ -74,9 +72,7 @@ def preProcessDirtySeedListOfDicts(dirtySeedListOfDicts):
     serialize("seedsFollowing", alreadyFollowedBySeedUser)
     for seedRecord in cleanSeedListOfDicts:
         seedRecordUsername = seedRecord.get("username")
-        seedRecord["following"] = filterDirtySeedListOfDicts(
-            buildDirtySeedListOfDicts(seedRecordUsername)
-        )
+        seedRecord["following"] = filterDirtySeedListOfDicts(buildDirtySeedListOfDicts(seedRecordUsername))
         usernameSet = list()
         for record in seedRecord["following"]:
             if record.get("username") not in alreadyFollowedBySeedUser:
@@ -110,13 +106,7 @@ def filterDirtySeedListOfDicts(dirtySeedListOfDicts):
     for record in dirtySeedListOfDicts["data"]:
         try:
             print("in try")
-            user_data = (
-                record.get("content", {})
-                .get("itemContent", {})
-                .get("user_results", {})
-                .get("result", {})
-                .get("legacy", {})
-            )
+            user_data = record.get("content", {}).get("itemContent", {}).get("user_results", {}).get("result", {}).get("legacy", {})
             new_entry = {
                 "username": user_data.get("screen_name"),
                 "following": user_data.get("friends_count"),
@@ -132,18 +122,10 @@ def filterDirtySeedListOfDicts(dirtySeedListOfDicts):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        description="Process username and password inputs.(Avoid using your primary account)"
-    )
-    parser.add_argument(
-        "--username", type=str, required=not SKIP_LOGIN, help="The username"
-    )
-    parser.add_argument(
-        "--password", type=str, required=not SKIP_LOGIN, help="The password"
-    )
+    parser = argparse.ArgumentParser(description="Process username and password inputs.(Avoid using your primary account)")
+    parser.add_argument("--username", type=str, required=not SKIP_LOGIN, help="The username")
+    parser.add_argument("--password", type=str, required=not SKIP_LOGIN, help="The password")
     args = parser.parse_args()
     setup(args.username, args.password)
-
     buildSeedJson(input("Enter Seed Username: "))
-
     print("SUCCESS")
