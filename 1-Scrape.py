@@ -72,6 +72,7 @@ def preProcessDirtySeedListOfDicts(dirtySeedListOfDicts):
         alreadyFollowedBySeedUser.append(record.get("username"))
     if DEBUG:
         print(alreadyFollowedBySeedUser)
+    serialize("seedsFollowing", alreadyFollowedBySeedUser)
     for seedRecord in cleanSeedListOfDicts:
         seedRecordUsername = seedRecord.get("username")
         seedRecord["following"] = filterDirtySeedListOfDicts(
@@ -93,6 +94,24 @@ def preProcessDirtySeedListOfDicts(dirtySeedListOfDicts):
     if DEBUG:
         prettyPrintMyListOfDicts(cleanSeedListOfDicts)
     serialize("seed", cleanSeedListOfDicts)
+
+
+def getFollowingList(filename, seedUsername, loginUsername="", loginPassword=""):
+    if loginUsername == "" or loginPassword == "":
+        loginUsername = input("Enter Login Username: ")
+        loginPassword = input("Enter Login Password: ")
+    twitter = setup(loginUsername, loginPassword)
+    alreadyFollowedBySeedUser = list()
+    for record in sorted(
+        filterDirtySeedListOfDicts(buildDirtySeedListOfDicts(seedUsername, twitter)),
+        key=lambda x: x["followers"],
+        reverse=True,
+    ):
+        alreadyFollowedBySeedUser.append(record.get("username"))
+    if DEBUG:
+        print(alreadyFollowedBySeedUser)
+    serialize(filename, alreadyFollowedBySeedUser)
+    return alreadyFollowedBySeedUser
 
 
 def filterDirtySeedListOfDicts(dirtySeedListOfDicts):
