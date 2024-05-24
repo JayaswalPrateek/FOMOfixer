@@ -57,10 +57,10 @@ def buildDirtySeedListOfDicts(seedUsername, twitter):
     )
     if DEBUG:
         prettyPrintMyListOfDicts(dirtySeedListOfDicts)
-    return dirtySeedListOfDicts
+    return dirtySeedListOfDicts, twitter
 
 
-def preProcessDirtySeedListOfDicts(dirtySeedListOfDicts):
+def preProcessDirtySeedListOfDicts(dirtySeedListOfDicts, twitter):
     cleanSeedListOfDicts = filterDirtySeedListOfDicts(dirtySeedListOfDicts)
     cleanSeedListOfDicts = sorted(
         cleanSeedListOfDicts, key=lambda x: x["followers"], reverse=True
@@ -76,15 +76,7 @@ def preProcessDirtySeedListOfDicts(dirtySeedListOfDicts):
     for seedRecord in cleanSeedListOfDicts:
         seedRecordUsername = seedRecord.get("username")
         seedRecord["following"] = filterDirtySeedListOfDicts(
-            twitter.get_friends(
-                user_id=twitter.get_user_id(seedRecordUsername),
-                follower=False,
-                following=True,
-                mutual_follower=False,
-                end_cursor=None,
-                total=None,
-                pagination=True,
-            )
+            buildDirtySeedListOfDicts(seedRecordUsername, twitter)
         )
         usernameSet = list()
         for record in seedRecord["following"]:
@@ -114,7 +106,7 @@ def getFollowingList(filename, seedUsername, loginUsername="", loginPassword="")
     return alreadyFollowedBySeedUser
 
 
-def filterDirtySeedListOfDicts(dirtySeedListOfDicts):
+def filterDirtySeedListOfDicts(dirtySeedListOfDicts, twitter=None):
     cleanSeedListOfDicts = list()
     if "data" in dirtySeedListOfDicts and isinstance(
         dirtySeedListOfDicts["data"], list
