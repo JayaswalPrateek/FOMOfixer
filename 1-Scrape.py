@@ -128,8 +128,7 @@ def filterDirtySeedListOfDicts(dirtySeedListOfDicts, twitter=None):
                 if DEBUG:
                     print("new_entry built")
                     prettyPrintMyListOfDicts(new_entry)
-                if not new_entry.get("following") == 0:
-                    cleanSeedListOfDicts.append(new_entry)
+                cleanSeedListOfDicts.append(new_entry)
             except AttributeError as e:
                 print(f"Error processing record: {e}")
     return cleanSeedListOfDicts
