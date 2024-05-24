@@ -105,7 +105,6 @@ def filterDirtySeedListOfDicts(dirtySeedListOfDicts):
     cleanSeedListOfDicts = list()
     for record in dirtySeedListOfDicts["data"]:
         try:
-            print("in try")
             user_data = record.get("content", {}).get("itemContent", {}).get("user_results", {}).get("result", {}).get("legacy", {})
             new_entry = {
                 "username": user_data.get("screen_name"),
