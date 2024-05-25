@@ -14,7 +14,7 @@ CACHE_DIR_NAME = "cache"
 def setup(username, password):
     global twitter
     if SKIP_LOGIN:
-        return TweeterPy()
+        twitter = TweeterPy()
     twitter = TweeterPy()
     print("PSA: Avoid using your primary account")
     twitter.login(username, password)
@@ -81,24 +81,6 @@ def preProcessDirtySeedListOfDicts(dirtySeedListOfDicts):
     if DEBUG:
         prettyPrintMyListOfDicts(cleanSeedListOfDicts)
     serialize("seed", cleanSeedListOfDicts)
-
-
-def getFollowingList(filename, seedUsername, loginUsername="", loginPassword=""):
-    if loginUsername == "" or loginPassword == "":
-        loginUsername = input("Enter Login Username: ")
-        loginPassword = input("Enter Login Password: ")
-    twitter = setup(loginUsername, loginPassword)
-    alreadyFollowedBySeedUser = list()
-    for record in sorted(
-        filterDirtySeedListOfDicts(buildDirtySeedListOfDicts(seedUsername)),
-        key=lambda x: x["followers"],
-        reverse=True,
-    ):
-        alreadyFollowedBySeedUser.append(record.get("username"))
-    if DEBUG:
-        print(alreadyFollowedBySeedUser)
-    serialize(filename, alreadyFollowedBySeedUser)
-    return alreadyFollowedBySeedUser
 
 
 def filterDirtySeedListOfDicts(dirtySeedListOfDicts):
