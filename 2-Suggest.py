@@ -4,8 +4,9 @@ import importlib
 import json
 import os
 
-DEBUG = False
-CACHE_DIR_NAME = "cache"
+DEBUG = importlib.import_module("1-Scrape").DEBUG
+CACHE_DIR_NAME = importlib.import_module("1-Scrape").CACHE_DIR_NAME
+SUGGESTION_THRESHOLD = 5
 
 
 def deserialize(fileName):
@@ -13,16 +14,16 @@ def deserialize(fileName):
     if not os.path.exists(filePath):
         if DEBUG:
             print(f"File '{filePath}' does not exist.")
-        return None
+        exit(1)
     try:
-        with open(filePath, "r") as json_file:
-            data = json.load(json_file)
+        with open(filePath, "r") as jsonFile:
+            data = json.load(jsonFile)
             if DEBUG:
                 print(f"Data successfully read from '{filePath}'.")
             return data
     except Exception as e:
         print(f"Error occurred while deserializing '{filePath}': {e}")
-        return None
+        exit(1)
 
 
 def buildFreqTable(listOfDicts, shouldSerialize=False):
@@ -30,23 +31,22 @@ def buildFreqTable(listOfDicts, shouldSerialize=False):
     for record in listOfDicts:
         freqTable.update(record["following"])
     freqDict = dict(freqTable)
-    suggestDict = {}
-    discardDict = {}
+    suggestDict, discardDict = {}, {}
     for key, value in freqDict.items():
         if key == None:
             continue
-        if value >= 5:
+        if value >= SUGGESTION_THRESHOLD:
             suggestDict[key] = value
         else:
             discardDict[key] = value
     suggestDict = dict(sorted(suggestDict.items(), key=lambda item: item[1], reverse=True))
-    if DEBUG:
-        prettyPrintMyListOfDicts(suggestDict)
-        # prettyPrintMyListOfDicts(discardDict)
+    discardDict = dict(sorted(discardDict.items(), key=lambda item: item[1], reverse=True))
     if shouldSerialize:
         serialize = importlib.import_module("1-Scrape").serialize
         serialize("suggest", suggestDict)
         serialize("discard", discardDict)
+    if DEBUG:
+        prettyPrintMyListOfDicts(suggestDict)
     return suggestDict, discardDict
 
 

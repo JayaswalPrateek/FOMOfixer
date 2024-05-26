@@ -15,8 +15,8 @@ def setup(username, password):
     global twitter
     if SKIP_LOGIN:
         twitter = TweeterPy()
+        return
     twitter = TweeterPy()
-    print("PSA: Avoid using your primary account")
     twitter.login(username, password)
     if not twitter.logged_in:
         print("Login Failed!")
@@ -26,16 +26,16 @@ def setup(username, password):
             prettyPrintMyListOfDicts(twitter.me)
 
 
-def serialize(fileName, listOfDicts):
+def serialize(fileName, data):
     if not os.path.exists(CACHE_DIR_NAME):
         os.makedirs(CACHE_DIR_NAME)
         if DEBUG:
             print(f"Directory '{CACHE_DIR_NAME}' created successfully.")
     elif DEBUG:
         print(f"Directory '{CACHE_DIR_NAME}' already exists.")
-    json_string = json.dumps(listOfDicts, indent=4)
-    with open(f"{CACHE_DIR_NAME}/{fileName}.json", "w") as json_file:
-        json_file.write(json_string)
+    jsonString = json.dumps(data, indent=4)
+    with open(f"{CACHE_DIR_NAME}/{fileName}.json", "w") as jsonFile:
+        jsonFile.write(jsonString)
         if DEBUG:
             print(f"Data successfully written to '{CACHE_DIR_NAME}/{fileName}.json'.")
 
@@ -60,24 +60,23 @@ def buildDirtySeedListOfDicts(seedUsername):
 
 
 def preProcessDirtySeedListOfDicts(dirtySeedListOfDicts):
-    cleanSeedListOfDicts = filterDirtySeedListOfDicts(dirtySeedListOfDicts)
-    cleanSeedListOfDicts = sorted(cleanSeedListOfDicts, key=lambda x: x["followers"], reverse=True)
+    cleanSeedListOfDicts = sorted(filterDirtySeedListOfDicts(dirtySeedListOfDicts), key=lambda x: x["followers"], reverse=True)
     if DEBUG:
         prettyPrintMyListOfDicts(cleanSeedListOfDicts)
     alreadyFollowedBySeedUser = list()
     for record in cleanSeedListOfDicts:
-        alreadyFollowedBySeedUser.append(record.get("username"))
+        alreadyFollowedBySeedUser.append(record["username"])
     if DEBUG:
         print(alreadyFollowedBySeedUser)
     serialize("seedsFollowing", alreadyFollowedBySeedUser)
     for seedRecord in cleanSeedListOfDicts:
-        seedRecordUsername = seedRecord.get("username")
+        seedRecordUsername = seedRecord["username"]
         seedRecord["following"] = filterDirtySeedListOfDicts(buildDirtySeedListOfDicts(seedRecordUsername))
-        usernameSet = list()
+        usernameList = list()
         for record in seedRecord["following"]:
-            if record.get("username") not in alreadyFollowedBySeedUser:
-                usernameSet.append(record.get("username"))
-        seedRecord["following"] = usernameSet
+            if record["username"] not in alreadyFollowedBySeedUser:
+                usernameList.append(record["username"])
+        seedRecord["following"] = usernameList
     if DEBUG:
         prettyPrintMyListOfDicts(cleanSeedListOfDicts)
     serialize("seed", cleanSeedListOfDicts)
@@ -87,23 +86,24 @@ def filterDirtySeedListOfDicts(dirtySeedListOfDicts):
     cleanSeedListOfDicts = list()
     for record in dirtySeedListOfDicts["data"]:
         try:
-            user_data = record.get("content", {}).get("itemContent", {}).get("user_results", {}).get("result", {}).get("legacy", {})
-            new_entry = {
-                "username": user_data.get("screen_name"),
-                "following": user_data.get("friends_count"),
-                "followers": user_data.get("followers_count"),
+            data = record.get("content", {}).get("itemContent", {}).get("user_results", {}).get("result", {}).get("legacy", {})
+            entry = {
+                "username": data["screen_name"],
+                "following": data["friends_count"],
+                "followers": data["followers_count"],
             }
             if DEBUG:
-                print("new_entry built")
-                prettyPrintMyListOfDicts(new_entry)
-            cleanSeedListOfDicts.append(new_entry)
+                print("built entry:")
+                prettyPrintMyListOfDicts(entry)
+            cleanSeedListOfDicts.append(entry)
         except AttributeError as e:
             print(f"Error processing record: {e}")
+            exit(1)
     return cleanSeedListOfDicts
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Process username and password inputs.(Avoid using your primary account)")
+    parser = argparse.ArgumentParser(description="Process username and password inputs.")
     parser.add_argument("--username", type=str, required=not SKIP_LOGIN, help="The username")
     parser.add_argument("--password", type=str, required=not SKIP_LOGIN, help="The password")
     args = parser.parse_args()

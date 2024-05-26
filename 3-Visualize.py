@@ -1,11 +1,13 @@
-import matplotlib.pyplot as plt
 import importlib
+import matplotlib.pyplot as plt
 
 
 def plotFreqDistr(listOfDicts):
     frequencies = {key: value for key, value in listOfDicts.items() if key is not None}
-    counts = [list(frequencies.values()).count(i) for i in range(2, 26)]
-    plt.bar(range(2, 26), counts, color="skyblue")
+    minFreq = min(frequencies.values())
+    maxFreq = max(frequencies.values())
+    counts = [list(frequencies.values()).count(i) for i in range(minFreq, maxFreq + 1)]
+    plt.bar(range(minFreq, maxFreq + 1), counts, color="skyblue")
     plt.xlabel("Frequency")
     plt.ylabel("Count")
     plt.title("Frequency Distribution")

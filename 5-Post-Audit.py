@@ -7,7 +7,7 @@ import os
 
 twitter = None
 DEBUG = importlib.import_module("1-Scrape").DEBUG
-allFollowedUsersSoFar = None
+everyUserFollowedBySeedUserSoFar = None
 
 
 def getNewlyFollowedUsernames(seedUsername):
@@ -17,8 +17,8 @@ def getNewlyFollowedUsernames(seedUsername):
     if len(newlyFollowedUsernames) == 0:
         print("You are all caught up! No need for a post audit.")
         exit(0)
-    global allFollowedUsersSoFar
-    allFollowedUsersSoFar = preAuditFollowing.union(postAuditFollowing)
+    global everyUserFollowedBySeedUserSoFar
+    everyUserFollowedBySeedUserSoFar = preAuditFollowing.union(postAuditFollowing)  # includes both: newly followed/unfollowed usernames
     return newlyFollowedUsernames
 
 
@@ -26,7 +26,7 @@ def getFollowingList(seedUsername, shouldSerialize=False, filename="", filter=No
     if shouldSerialize and filename == "":
         while len(filename) == 0:
             filename = input(f"Enter Filename for following list of {seedUsername}")
-    alreadyFollowedBySeedUser = list()
+    followedBySeedUser = list()
     buildDirtySeedListOfDicts = importlib.import_module("1-Scrape").buildDirtySeedListOfDicts
     filterDirtySeedListOfDicts = importlib.import_module("1-Scrape").filterDirtySeedListOfDicts
     for record in sorted(
@@ -35,14 +35,14 @@ def getFollowingList(seedUsername, shouldSerialize=False, filename="", filter=No
         reverse=True,
     ):
         if filter == None:
-            alreadyFollowedBySeedUser.append(record.get("username"))
-        elif record.get("username") not in filter:
-            alreadyFollowedBySeedUser.append(record.get("username"))
+            followedBySeedUser.append(record["username"])
+        elif record["username"] not in filter:
+            followedBySeedUser.append(record["username"])
     if DEBUG:
-        print(alreadyFollowedBySeedUser)
+        print(followedBySeedUser)
     if shouldSerialize:
-        importlib.import_module("1-Scrape").serialize(filename, alreadyFollowedBySeedUser)
-    return alreadyFollowedBySeedUser
+        importlib.import_module("1-Scrape").serialize(filename, followedBySeedUser)
+    return followedBySeedUser
 
 
 def getFollowerCount(seedUsername):
@@ -50,7 +50,7 @@ def getFollowerCount(seedUsername):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Process username and password inputs.(Avoid using your primary account)")
+    parser = argparse.ArgumentParser(description="Process username and password inputs.")
     parser.add_argument("--username", type=str, required=True, help="The username")
     parser.add_argument("--password", type=str, required=True, help="The password")
     args = parser.parse_args()
@@ -62,7 +62,7 @@ if __name__ == "__main__":
     for username in newAlreadyFollowing:
         entry = {
             "username": username,
-            "following": getFollowingList(username, filter=allFollowedUsersSoFar),
+            "following": getFollowingList(username, filter=everyUserFollowedBySeedUserSoFar),
             "followers": getFollowerCount(username),
         }
         postAuditListOfDicts.append(entry)
@@ -73,7 +73,7 @@ if __name__ == "__main__":
         prettyPrintMyListOfDicts(postAuditListOfDicts)
 
     oldDiscard = importlib.import_module("2-Suggest").deserialize("discard")
-    newSuggest, newDiscard = buildFreqTable(postAuditListOfDicts)
+    newSuggest, newDiscard = importlib.import_module("2-Suggest").buildFreqTable(postAuditListOfDicts)
     oldDiscardCtr, newDiscardCtr = Counter(oldDiscard), Counter(newDiscard)
     updatedDiscard = dict(oldDiscardCtr + newDiscardCtr)
     updatedSuggest = {key: value for key, value in updatedDiscard.items() if value >= 5}
