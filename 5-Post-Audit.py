@@ -1,4 +1,4 @@
-from collections import Counter
+from collections import Counter, defaultdict
 from print_dict import print_dict as prettyPrintMyListOfDicts
 from tweeterpy import TweeterPy
 import argparse
@@ -7,6 +7,7 @@ import os
 
 twitter = None
 DEBUG = importlib.import_module("1-Scrape").DEBUG
+SUGGESTION_THRESHOLD = importlib.import_module("2-Suggest").SUGGESTION_THRESHOLD
 everyUserFollowedBySeedUserSoFar = None
 
 
@@ -74,9 +75,16 @@ if __name__ == "__main__":
 
     oldDiscard = importlib.import_module("2-Suggest").deserialize("discard")
     newSuggest, newDiscard = importlib.import_module("2-Suggest").buildFreqTable(postAuditListOfDicts)
-    oldDiscardCtr, newDiscardCtr = Counter(oldDiscard), Counter(newDiscard)
-    updatedDiscard = dict(oldDiscardCtr + newDiscardCtr)
-    updatedSuggest = {key: value for key, value in updatedDiscard.items() if value >= 5}
+    mergedFreqTable = defaultdict(int)
+    for key, value in oldDiscard.items():
+        mergedFreqTable[key] += value
+    for key, value in newSuggest.items():
+        mergedFreqTable[key] += value
+    for key, value in newDiscard.items():
+        mergedFreqTable[key] += value
+    updatedSuggest = {key: value for key, value in mergedFreqTable.items() if value >= SUGGESTION_THRESHOLD}
+    updatedDiscard = {key: value for key, value in mergedFreqTable.items() if value < SUGGESTION_THRESHOLD}
+
     importlib.import_module("3-Visualize").plotFreqDistr(updatedSuggest)
     importlib.import_module("3-Visualize").plotFreqDistr(updatedDiscard)
 
@@ -85,9 +93,7 @@ if __name__ == "__main__":
 
     importlib.import_module("1-Scrape").serialize("suggest", updatedSuggest)
     importlib.import_module("1-Scrape").serialize("discard", updatedSuggest)
-    importlib.import_module("4-Audit").audit(newSuggest)
 
     print("Post Audit completed, updated suggest.json and discard.json in-place")
     print("saved previous suggest.json and discard.json as old-suggest.json and old-discard.json")
-    print("After Post Auditing again, they may be overwritten!")
     print("SUCCESS")
