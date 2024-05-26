@@ -25,7 +25,7 @@ def deserialize(fileName):
         return None
 
 
-def buildFreqTable(listOfDicts):
+def buildFreqTable(listOfDicts, shouldSerialize=False):
     freqTable = Counter()
     for record in listOfDicts:
         freqTable.update(record["following"])
@@ -43,11 +43,13 @@ def buildFreqTable(listOfDicts):
     if DEBUG:
         prettyPrintMyListOfDicts(suggestDict)
         # prettyPrintMyListOfDicts(discardDict)
-    serialize = importlib.import_module("1-Scrape").serialize
-    serialize("suggest", suggestDict)
-    serialize("discard", discardDict)
+    if shouldSerialize:
+        serialize = importlib.import_module("1-Scrape").serialize
+        serialize("suggest", suggestDict)
+        serialize("discard", discardDict)
+    return suggestDict, discardDict
 
 
 if __name__ == "__main__":
-    buildFreqTable(deserialize("seed"))
+    buildFreqTable(deserialize("seed"), shouldSerialize=True)
     print("SUCCESS")

@@ -1,3 +1,4 @@
+from collections import Counter
 from print_dict import print_dict as prettyPrintMyListOfDicts
 from tweeterpy import TweeterPy
 import argparse
@@ -69,3 +70,13 @@ if __name__ == "__main__":
     importlib.import_module("1-Scrape").serialize("seedDeltaPostAudit", postAuditListOfDicts)
     if DEBUG:
         prettyPrintMyListOfDicts(postAuditListOfDicts)
+
+    oldDiscard = importlib.import_module("2-Suggest").deserialize("discard")
+    newSuggest, newDiscard = buildFreqTable(postAuditListOfDicts)
+    oldDiscardCtr, newDiscardCtr = Counter(oldDiscard), Counter(newDiscard)
+    updatedDiscard = dict(oldDiscardCtr + newDiscardCtr)
+    updatedSuggest = {key: value for key, value in updatedDiscard.items() if value >= 5}
+
+    # TODO: serialize updatedSuggest and updatedDiscard incrementally here
+
+    importlib.import_module("4-Audit").audit(newSuggest)
