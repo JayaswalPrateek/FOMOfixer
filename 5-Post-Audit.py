@@ -3,6 +3,7 @@ from print_dict import print_dict as prettyPrintMyListOfDicts
 from tweeterpy import TweeterPy
 import argparse
 import importlib
+import os
 
 twitter = None
 DEBUG = importlib.import_module("1-Scrape").DEBUG
@@ -76,7 +77,17 @@ if __name__ == "__main__":
     oldDiscardCtr, newDiscardCtr = Counter(oldDiscard), Counter(newDiscard)
     updatedDiscard = dict(oldDiscardCtr + newDiscardCtr)
     updatedSuggest = {key: value for key, value in updatedDiscard.items() if value >= 5}
+    importlib.import_module("3-Visualize").plotFreqDistr(updatedSuggest)
+    importlib.import_module("3-Visualize").plotFreqDistr(updatedDiscard)
 
-    # TODO: serialize updatedSuggest and updatedDiscard incrementally here
+    os.rename("cache/suggest.json", "cache/old-suggest.json")
+    os.rename("cache/discard.json", "cache/old-discard.json")
 
+    importlib.import_module("1-Scrape").serialize("suggest", updatedSuggest)
+    importlib.import_module("1-Scrape").serialize("discard", updatedSuggest)
     importlib.import_module("4-Audit").audit(newSuggest)
+
+    print("Post Audit completed, updated suggest.json and discard.json in-place")
+    print("saved previous suggest.json and discard.json as old-suggest.json and old-discard.json")
+    print("After Post Auditing again, they may be overwritten!")
+    print("SUCCESS")
