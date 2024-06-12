@@ -74,6 +74,7 @@ if __name__ == "__main__":
         prettyPrintMyListOfDicts(postAuditListOfDicts)
 
     oldDiscard = importlib.import_module("2-Suggest").deserialize("discard")
+    oldSuggest = importlib.import_module("2-Suggest").deserialize("suggest")
     newSuggest, newDiscard = importlib.import_module("2-Suggest").buildFreqTable(postAuditListOfDicts)
     mergedFreqTable = defaultdict(int)
     for key, value in oldDiscard.items():
@@ -82,6 +83,9 @@ if __name__ == "__main__":
         mergedFreqTable[key] += value
     for key, value in newDiscard.items():
         mergedFreqTable[key] += value
+    for alreadyVisitedSuggestion in list(oldSuggest.keys()):
+        if alreadyVisitedSuggestion in mergedFreqTable:
+            del mergedFreqTable[alreadyVisitedSuggestion]
     updatedSuggest = {key: value for key, value in mergedFreqTable.items() if value >= SUGGESTION_THRESHOLD}
     updatedDiscard = {key: value for key, value in mergedFreqTable.items() if value < SUGGESTION_THRESHOLD}
 
