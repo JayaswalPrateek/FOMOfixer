@@ -50,6 +50,21 @@ def getFollowerCount(seedUsername):
     return twitter.get_user_info(twitter.get_user_id(seedUsername)).get("legacy", {}).get("followers_count")
 
 
+def sortSeedsFollowingByTheirFollowingCount(seedUsername, serialize=False):
+    resultKeys = getFollowingList(seedUsername)
+    resultValues = list()
+    for username in resultKeys:
+        entry = twitter.get_user_info(twitter.get_user_id(username)).get("legacy", {}).get("friends_count", {})
+        resultValues.append(entry)
+    result = dict(zip(resultKeys, resultValues))
+    sortedResult = dict(sorted(result.items(), key=lambda item: item[1]))
+    if serialize:
+        importlib.import_module("1-Scrape").serialize("seedsFollowingSortedByFollowingCount", sortedResult)
+    if DEBUG:
+        prettyPrintMyListOfDicts(sortedResult)
+    return sortedResult
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Process username and password inputs.")
     parser.add_argument("--username", type=str, required=True, help="The username")
