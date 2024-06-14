@@ -87,6 +87,9 @@ def filterDirtySeedListOfDicts(dirtySeedListOfDicts):
     for record in dirtySeedListOfDicts["data"]:
         try:
             data = record.get("content", {}).get("itemContent", {}).get("user_results", {}).get("result", {}).get("legacy", {})
+            if data == {}:
+                print(f"found empty record {record}, skipping it.")
+                continue
             entry = {
                 "username": data["screen_name"],
                 "following": data["friends_count"],
