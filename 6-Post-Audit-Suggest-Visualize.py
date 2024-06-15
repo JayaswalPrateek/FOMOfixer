@@ -20,6 +20,12 @@ if __name__ == "__main__":
     for alreadyVisitedSuggestion in list(oldSuggest.keys()):
         if alreadyVisitedSuggestion in mergedFreqTable.keys():
             del mergedFreqTable[alreadyVisitedSuggestion]
+
+    print("Aggregated Post Audits Results Incrementally!")
+    print("Look at the Freq. Distribution before setting SUGGESTION_THRESHOLD")
+    importlib.import_module("3-Visualize").plotFreqDistr(mergedFreqTable)
+    SUGGESTION_THRESHOLD = int(input("SUGGESTION_THRESHOLD: "))
+
     updatedSuggest = {key: value for key, value in mergedFreqTable.items() if value >= SUGGESTION_THRESHOLD}
     updatedDiscard = {key: value for key, value in mergedFreqTable.items() if value < SUGGESTION_THRESHOLD}
 
